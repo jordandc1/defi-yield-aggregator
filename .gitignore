@@ -1,0 +1,19 @@
+.DS_Store
+# root
+.DS_Store
+# Java
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/.idea/
+backend/*.iml
+backend/.gradle/
+backend/build/
+# Node
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+frontend/.env.local
+# Ops
+.env
