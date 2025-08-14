@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dya-backend
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+app:
+  prices:
+    baseUrl: ${COINGECKO_BASE_URL:https://api.coingecko.com/api/v3}
+  chains:
+    ethereum:
+      rpcUrl: ${ETHEREUM_RPC_URL:} # Alchemy/Infura HTTPS
+      wsUrl:  ${ETHEREUM_WS_URL:}  # optional for later
+      chainId: 1
