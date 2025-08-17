@@ -31,3 +31,10 @@ export async function fetchAlerts(address: string) {
   const { data } = await axios.get<AlertsResponse>(`${BASE}/alerts/${address}`);
   return data;
 }
+
+export async function fetchPrices(symbols: string[]) {
+  const qs = encodeURIComponent(symbols.join(','))
+  const { data } = await axios.get<Record<string, number>>(`${BASE}/prices?symbols=${qs}`)
+  return data
+}
+

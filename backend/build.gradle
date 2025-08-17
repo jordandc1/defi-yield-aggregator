@@ -38,3 +38,16 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.named("bootRun") {
+    jvmArgs = [
+            "-Djava.net.preferIPv4Stack=true",
+            "-Djava.net.preferIPv6Addresses=false",
+            "-Djava.net.useSystemProxies=true"
+    ]
+    // optional: pass key
+    systemProperties = [
+            "app.prices.demoApiKey": System.getenv("COINGECKO_DEMO_API_KEY")
+    ]
+}
+

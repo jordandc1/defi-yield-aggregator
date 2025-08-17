@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { addRecentAddress, getRecentAddresses } from './storage'
-import { fetchAlerts, fetchPortfolio, type PortfolioDTO } from './api'
+import { fetchPrices, fetchAlerts, fetchPortfolio, type PortfolioDTO } from './api'
 
 export default function App() {
   // wallet state
@@ -15,6 +15,7 @@ export default function App() {
   const [recent, setRecent] = useState<string[]>([])
   const [portfolio, setPortfolio] = useState<PortfolioDTO | null>(null)
   const [alerts, setAlerts] = useState<Awaited<ReturnType<typeof fetchAlerts>> | null>(null)
+  const [prices, setPrices] = useState<Record<string, number> | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,6 +29,10 @@ export default function App() {
       setAddr(connectedAddr)
     }
   }, [isConnected, connectedAddr])
+
+  useEffect(() => {
+  fetchPrices(['ETH','DAI','USDC']).then(setPrices).catch(console.error)
+  }, [])
 
   const metamask = useMemo(
     () => connectors.find(c => c.id === 'injected') ?? injected(),
@@ -134,6 +139,17 @@ export default function App() {
           </>
         )}
       </section>
+
+      {prices && (
+        <section style={{ marginTop: 24 }}>
+          <h2>Live Prices</h2>
+          <div style={{ fontSize: 14 }}>
+            <span style={{ marginRight: 12 }}>ETH ${prices.ETH?.toFixed(2)}</span>
+            <span style={{ marginRight: 12 }}>DAI ${prices.DAI?.toFixed(4)}</span>
+            <span>USDC ${prices.USDC?.toFixed(4)}</span>
+          </div>
+        </section>
+      )}
 
       <section style={{ marginTop: 24 }}>
         <h2>Alerts</h2>

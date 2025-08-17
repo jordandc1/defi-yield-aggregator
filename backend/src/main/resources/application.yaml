@@ -11,6 +11,13 @@ spring:
 app:
   prices:
     baseUrl: ${COINGECKO_BASE_URL:https://api.coingecko.com/api/v3}
+    cacheTtlMinutes: ${PRICE_CACHE_TTL_MINUTES:10}
+    demoApiKey: ${COINGECKO_DEMO_API_KEY:CG-kQ575HU7YYQynEFkSyiaRnyA}
+  http:
+    connectTimeoutMillis: 3000
+    readTimeoutMillis: 4000
+    proxyHost: ${HTTP_PROXY_HOST:}
+    proxyPort: ${HTTP_PROXY_PORT:0}
   chains:
     ethereum:
       rpcUrl: ${ETHEREUM_RPC_URL:} # Alchemy/Infura HTTPS
