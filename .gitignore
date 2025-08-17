@@ -16,3 +16,4 @@ frontend/dist/
 frontend/.env.local
 # Ops
 .env
+/.idea/
