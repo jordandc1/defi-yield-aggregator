@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { addRecentAddress, getRecentAddresses } from './storage'
@@ -46,6 +46,8 @@ export default function App() {
       if(e instanceof Error) {
         setError(e?.message ?? 'Failed to load data')
       }
+      // Clear stale data on error to avoid showing old results
+      setPortfolio(null); setAlerts(null)
     } finally {
       setLoading(false)
     }
@@ -79,7 +81,11 @@ export default function App() {
         <input
           placeholder="Enter EVM address (0x...) or connect wallet"
           value={addr}
-          onChange={(e) => setAddr(e.target.value.trim())}
+          onChange={(e) => {
+            setAddr(e.target.value.trim())
+            // Reset existing data when user edits the address
+            setPortfolio(null); setAlerts(null)
+          }}
           style={{ padding: 10, fontSize: 14 }}
         />
         <button onClick={load} disabled={!addr || loading}>
@@ -157,10 +163,10 @@ function short(a?: string) { return a ? `${a.slice(0,6)}…${a.slice(-4)}` : '' 
 function num(n: number) { return Number(n).toLocaleString(undefined, { maximumFractionDigits: 6 }) }
 function fmtUsd(n: number) { return n.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }) }
 
-function Th({ children, right }: any) {
+function Th({ children, right }: { children: ReactNode; right?: boolean }) {
   return <th style={{ textAlign: right ? 'right' as const : 'left', fontWeight: 600, fontSize: 13, color: '#444' }}>{children}</th>
 }
-function Td({ children, right }: any) {
+function Td({ children, right }: { children: ReactNode; right?: boolean }) {
   return <td style={{ textAlign: right ? 'right' as const : 'left', fontSize: 13 }}>{children}</td>
 }
 function RiskTag({ level }: { level: string }) {
