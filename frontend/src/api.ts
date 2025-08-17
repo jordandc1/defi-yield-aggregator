@@ -10,10 +10,12 @@ export type PositionDTO = {
   usdValue: number
   apr: number
   riskStatus: 'OK' | 'WARN' | 'CRITICAL' | string
+  positionType: 'DEPOSIT' | 'BORROW' | string
 }
 export type PortfolioDTO = {
   address: string
   totalUsd: number
+  healthFactor: number | null
   positions: PositionDTO[]
   lastUpdatedIso: string
 }
