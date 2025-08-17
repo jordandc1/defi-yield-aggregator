@@ -39,7 +39,7 @@ export default function App() {
     setLoading(true); setError(null)
     try {
       const [p, a] = await Promise.all([fetchPortfolio(addr), fetchAlerts(addr)])
-      setPortfolio(p as PortfolioDTO); setAlerts(a)
+      setPortfolio(p); setAlerts(a)
       addRecentAddress(addr)
       setRecent(getRecentAddresses())
     } catch (e: unknown) {
@@ -116,11 +116,14 @@ export default function App() {
           <EmptyTable />
         ) : (
           <>
-            <p>Address: {portfolio.address} · Total USD: <b>{fmtUsd(portfolio.totalUsd)}</b> · Updated: {portfolio.lastUpdatedIso}</p>
+            <p>
+              Address: {portfolio.address} · Total USD: <b>{fmtUsd(portfolio.totalUsd)}</b> ·
+              Health Factor: {portfolio.healthFactor != null ? portfolio.healthFactor.toFixed(2) : 'N/A'} · Updated: {portfolio.lastUpdatedIso}
+            </p>
             <table width="100%" cellPadding={6} style={{ borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <Th>Protocol</Th><Th>Network</Th><Th>Asset</Th><Th right>Amount</Th><Th right>USD</Th><Th right>APR</Th><Th>Risk</Th>
+                  <Th>Protocol</Th><Th>Network</Th><Th>Asset</Th><Th>Type</Th><Th right>Amount</Th><Th right>USD</Th><Th right>APR</Th><Th>Risk</Th>
                 </tr>
               </thead>
               <tbody>
@@ -129,8 +132,9 @@ export default function App() {
                     <Td>{p.protocol}</Td>
                     <Td>{p.network}</Td>
                     <Td>{p.asset}</Td>
-                    <Td right>{num(p.amount)}</Td>
-                    <Td right>{fmtUsd(p.usdValue)}</Td>
+                    <Td>{p.positionType}</Td>
+                    <Td right>{num(p.positionType === 'BORROW' ? -p.amount : p.amount)}</Td>
+                    <Td right>{fmtUsd(p.positionType === 'BORROW' ? -p.usdValue : p.usdValue)}</Td>
                     <Td right>{(p.apr * 100).toFixed(2)}%</Td>
                     <Td><RiskTag level={p.riskStatus} /></Td>
                   </tr>
@@ -170,16 +174,19 @@ function Td({ children, right }: { children: ReactNode; right?: boolean }) {
   return <td style={{ textAlign: right ? 'right' as const : 'left', fontSize: 13 }}>{children}</td>
 }
 function RiskTag({ level }: { level: string }) {
-  const color = level === 'CRITICAL' ? '#dc2626' : level === 'WARN' ? '#d97706' : '#16a34a'
+  const lvl = level?.toUpperCase()
+  let color = '#16a34a'
+  if (lvl === 'CRITICAL' || lvl === 'DANGER' || lvl === 'HIGH') color = '#dc2626'
+  else if (lvl === 'WARN' || lvl === 'WARNING' || lvl === 'MEDIUM') color = '#d97706'
   return <span style={{ background: color, color: 'white', padding: '2px 6px', borderRadius: 6, fontSize: 12 }}>{level}</span>
 }
 function EmptyTable() {
   return (
     <table width="100%" cellPadding={6} style={{ borderCollapse: 'collapse', color: '#777' }}>
       <thead>
-        <tr><th>Protocol</th><th>Network</th><th>Asset</th><th>Amount</th><th>USD</th><th>APR</th><th>Risk</th></tr>
+        <tr><th>Protocol</th><th>Network</th><th>Asset</th><th>Type</th><th>Amount</th><th>USD</th><th>APR</th><th>Risk</th></tr>
       </thead>
-      <tbody><tr><td colSpan={7} style={{ textAlign: 'center', padding: 20 }}>No data yet. Enter an address or connect wallet.</td></tr></tbody>
+      <tbody><tr><td colSpan={8} style={{ textAlign: 'center', padding: 20 }}>No data yet. Enter an address or connect wallet.</td></tr></tbody>
     </table>
   )
 }
