@@ -44,9 +44,11 @@ class AaveV3ServiceTest {
         assertThat(positions).hasSize(1);
         PortfolioDTO.PositionDTO p = positions.get(0);
         assertThat(p.asset()).isEqualTo("DAI");
-        assertThat(p.amount()).isEqualByComparingTo(new BigDecimal("90"));
+        assertThat(p.amount()).isEqualByComparingTo(new BigDecimal("100"));
+        assertThat(p.usdValue()).isEqualByComparingTo(new BigDecimal("100"));
         assertThat(p.apr()).isEqualByComparingTo(new BigDecimal("0.05"));
-        assertThat(p.usdValue()).isEqualByComparingTo(new BigDecimal("90"));
+        assertThat(p.borrowAmount()).isEqualByComparingTo(new BigDecimal("10"));
+        assertThat(p.borrowApr()).isEqualByComparingTo(new BigDecimal("0.1"));
         assertThat(p.riskStatus()).isEqualTo("OK");
     }
 }
