@@ -92,17 +92,18 @@ public class AaveV3Service {
         BigDecimal borrowed = new BigDecimal(userReserve.getOrDefault("scaledVariableDebt", "0").toString())
                 .movePointLeft(decimals);
 
-        BigDecimal netAmount = supplied.subtract(borrowed);
-        BigDecimal usdValue = netAmount.multiply(priceUsd);
-        BigDecimal apr = netAmount.signum() >= 0 ? liquidityRate : variableBorrowRate;
+        // usdValue should represent the supplied value only
+        BigDecimal usdValue = supplied.multiply(priceUsd);
 
         return new PortfolioDTO.PositionDTO(
                 "Aave",
                 "ethereum",
                 symbol,
-                netAmount,
+                supplied,
                 usdValue,
-                apr,
+                liquidityRate,
+                borrowed,
+                variableBorrowRate,
                 riskStatus
         );
     }
