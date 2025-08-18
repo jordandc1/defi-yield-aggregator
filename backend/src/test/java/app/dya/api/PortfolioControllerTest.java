@@ -2,6 +2,7 @@ package app.dya.api;
 
 import app.dya.api.dto.PortfolioDTO;
 import app.dya.service.aave.AaveV3Service;
+import app.dya.service.compound.CompoundV2Service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -16,17 +17,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PortfolioController.class)
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@SpringBootTest
-@AutoConfigureMockMvc
 class PortfolioControllerTest {
 
     @Autowired
@@ -35,28 +25,36 @@ class PortfolioControllerTest {
     @MockBean
     private AaveV3Service aaveV3Service;
 
+    @MockBean
+    private CompoundV2Service compoundV2Service;
+
     @Test
-    void returnsPortfolioFromService() throws Exception {
-        List<PortfolioDTO.PositionDTO> positions = List.of(
-                new PortfolioDTO.PositionDTO("Aave","ethereum","DAI", new BigDecimal("90"), new BigDecimal("90"), new BigDecimal("0.05"), "OK")
+    void aggregatesPositionsAndCalculatesTotals() throws Exception {
+        List<PortfolioDTO.PositionDTO> aavePositions = List.of(
+                new PortfolioDTO.PositionDTO(
+                        "Aave", "ethereum", "DAI",
+                        new BigDecimal("100"), new BigDecimal("100"), new BigDecimal("0.05"),
+                        new BigDecimal("20"), new BigDecimal("0.03"), "OK")
         );
-        when(aaveV3Service.getPositions("0xabc")).thenReturn(positions);
+        List<PortfolioDTO.PositionDTO> compoundPositions = List.of(
+                new PortfolioDTO.PositionDTO(
+                        "Compound", "ethereum", "USDC",
+                        new BigDecimal("50"), new BigDecimal("50"), new BigDecimal("0.02"),
+                        BigDecimal.ZERO, BigDecimal.ZERO, "OK")
+        );
+
+        when(aaveV3Service.getPositions("0xabc")).thenReturn(aavePositions);
+        when(compoundV2Service.getPositions("0xabc")).thenReturn(compoundPositions);
 
         mockMvc.perform(get("/portfolio/0xabc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.address").value("0xabc"))
-                .andExpect(jsonPath("$.totalUsd").value(90))
-                .andExpect(jsonPath("$.positions[0].asset").value("DAI"));
+                .andExpect(jsonPath("$.totalUsd").value(150))
+                .andExpect(jsonPath("$.netWorthUsd").value(130))
+                .andExpect(jsonPath("$.healthFactor").value(7.5))
+                .andExpect(jsonPath("$.positions.length()").value(2))
+                .andExpect(jsonPath("$.positions[0].asset").value("DAI"))
+                .andExpect(jsonPath("$.positions[1].asset").value("USDC"));
     }
 }
 
-    @Test
-    void returnsPortfolioWithBorrowFields() throws Exception {
-        mockMvc.perform(get("/portfolio/0xabc"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.healthFactor").value(1.8))
-                .andExpect(jsonPath("$.netWorthUsd").value(1200))
-                .andExpect(jsonPath("$.positions[0].borrowAmount").value(300))
-                .andExpect(jsonPath("$.positions[0].borrowApr").value(0.025));
-    }
-}
