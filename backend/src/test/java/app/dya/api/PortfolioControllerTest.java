@@ -57,8 +57,11 @@ class PortfolioControllerTest {
                 .andExpect(jsonPath("$.netWorthUsd").value(130))
                 .andExpect(jsonPath("$.healthFactor").value(7.5))
                 .andExpect(jsonPath("$.positions.length()").value(3))
+                .andExpect(jsonPath("$.positions[0].protocol").value("Aave"))
                 .andExpect(jsonPath("$.positions[0].positionType").value("DEPOSIT"))
+                .andExpect(jsonPath("$.positions[1].protocol").value("Aave"))
                 .andExpect(jsonPath("$.positions[1].positionType").value("BORROW"))
+                .andExpect(jsonPath("$.positions[2].protocol").value("Compound"))
                 .andExpect(jsonPath("$.positions[2].asset").value("USDC"));
     }
 }
