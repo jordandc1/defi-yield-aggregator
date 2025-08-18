@@ -34,13 +34,17 @@ class PortfolioControllerTest {
                 new PortfolioDTO.PositionDTO(
                         "Aave", "ethereum", "DAI",
                         new BigDecimal("100"), new BigDecimal("100"), new BigDecimal("0.05"),
-                        new BigDecimal("20"), new BigDecimal("0.03"), "OK")
+                        BigDecimal.ZERO, BigDecimal.ZERO, "OK", "DEPOSIT"),
+                new PortfolioDTO.PositionDTO(
+                        "Aave", "ethereum", "DAI",
+                        new BigDecimal("20"), BigDecimal.ZERO, BigDecimal.ZERO,
+                        new BigDecimal("20"), new BigDecimal("0.03"), "OK", "BORROW")
         );
         List<PortfolioDTO.PositionDTO> compoundPositions = List.of(
                 new PortfolioDTO.PositionDTO(
                         "Compound", "ethereum", "USDC",
                         new BigDecimal("50"), new BigDecimal("50"), new BigDecimal("0.02"),
-                        BigDecimal.ZERO, BigDecimal.ZERO, "OK")
+                        BigDecimal.ZERO, BigDecimal.ZERO, "OK", "DEPOSIT")
         );
 
         when(aaveV3Service.getPositions("0xabc")).thenReturn(aavePositions);
@@ -52,9 +56,10 @@ class PortfolioControllerTest {
                 .andExpect(jsonPath("$.totalUsd").value(150))
                 .andExpect(jsonPath("$.netWorthUsd").value(130))
                 .andExpect(jsonPath("$.healthFactor").value(7.5))
-                .andExpect(jsonPath("$.positions.length()").value(2))
-                .andExpect(jsonPath("$.positions[0].asset").value("DAI"))
-                .andExpect(jsonPath("$.positions[1].asset").value("USDC"));
+                .andExpect(jsonPath("$.positions.length()").value(3))
+                .andExpect(jsonPath("$.positions[0].positionType").value("DEPOSIT"))
+                .andExpect(jsonPath("$.positions[1].positionType").value("BORROW"))
+                .andExpect(jsonPath("$.positions[2].asset").value("USDC"));
     }
 }
 
