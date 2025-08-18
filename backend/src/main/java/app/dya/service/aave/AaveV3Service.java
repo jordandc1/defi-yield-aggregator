@@ -47,7 +47,7 @@ public class AaveV3Service {
         List<Map<String, Object>> reserves = (List<Map<String, Object>>) user.getOrDefault("reserves", Collections.emptyList());
         List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
         for (Map<String, Object> r : reserves) {
-            positions.add(mapReserve(r, riskStatus));
+            positions.addAll(mapReserve(r, riskStatus));
         }
         return positions;
     }
@@ -79,7 +79,7 @@ public class AaveV3Service {
         return (Map<String, Object>) data.get("user");
     }
 
-    private PortfolioDTO.PositionDTO mapReserve(Map<String, Object> userReserve, String riskStatus) {
+    private List<PortfolioDTO.PositionDTO> mapReserve(Map<String, Object> userReserve, String riskStatus) {
         Map<String, Object> reserve = (Map<String, Object>) userReserve.get("reserve");
         String symbol = (String) reserve.get("symbol");
         int decimals = Integer.parseInt(reserve.get("decimals").toString());
@@ -92,20 +92,41 @@ public class AaveV3Service {
         BigDecimal borrowed = new BigDecimal(userReserve.getOrDefault("scaledVariableDebt", "0").toString())
                 .movePointLeft(decimals);
 
-        // usdValue should represent the supplied value only
-        BigDecimal usdValue = supplied.multiply(priceUsd);
+        List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
 
-        return new PortfolioDTO.PositionDTO(
-                "Aave",
-                "ethereum",
-                symbol,
-                supplied,
-                usdValue,
-                liquidityRate,
-                borrowed,
-                variableBorrowRate,
-                riskStatus
-        );
+        if (supplied.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal suppliedUsd = supplied.multiply(priceUsd);
+            positions.add(new PortfolioDTO.PositionDTO(
+                    "Aave",
+                    "ethereum",
+                    symbol,
+                    supplied,
+                    suppliedUsd,
+                    liquidityRate,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    riskStatus,
+                    "DEPOSIT"
+            ));
+        }
+
+        if (borrowed.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal borrowedUsd = borrowed.multiply(priceUsd);
+            positions.add(new PortfolioDTO.PositionDTO(
+                    "Aave",
+                    "ethereum",
+                    symbol,
+                    borrowed,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    borrowedUsd,
+                    variableBorrowRate,
+                    riskStatus,
+                    "BORROW"
+            ));
+        }
+
+        return positions;
     }
 
     private BigDecimal parseRay(String value) {

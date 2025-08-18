@@ -12,7 +12,7 @@ import java.math.BigDecimal;
  * allowing the rest of the application to be wired and tested.</p>
  */
 @Service
-public class AaveV3Service {
+public class AaveV3HealthService {
 
     /**
      * Retrieve the health factor for a wallet. The health factor indicates the

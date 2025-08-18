@@ -2,7 +2,7 @@ package app.dya.api;
 
 import app.dya.api.dto.AlertItem;
 import app.dya.api.dto.AlertsResponse;
-import app.dya.service.AaveV3Service;
+import app.dya.service.AaveV3HealthService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,9 +22,9 @@ public class AlertsController {
     private static final BigDecimal WARNING_THRESHOLD = new BigDecimal("1.3");
     private static final BigDecimal CRITICAL_THRESHOLD = new BigDecimal("1.0");
 
-    private final AaveV3Service aaveV3Service;
+    private final AaveV3HealthService aaveV3Service;
 
-    public AlertsController(AaveV3Service aaveV3Service) {
+    public AlertsController(AaveV3HealthService aaveV3Service) {
         this.aaveV3Service = aaveV3Service;
     }
 

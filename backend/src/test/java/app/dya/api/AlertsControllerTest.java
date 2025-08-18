@@ -1,6 +1,6 @@
 package app.dya.api;
 
-import app.dya.service.AaveV3Service;
+import app.dya.service.AaveV3HealthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,7 +22,7 @@ class AlertsControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private AaveV3Service aaveV3Service;
+    private AaveV3HealthService aaveV3Service;
 
     @Test
     void emitsWarningAlertWhenHealthFactorBelowWarning() throws Exception {

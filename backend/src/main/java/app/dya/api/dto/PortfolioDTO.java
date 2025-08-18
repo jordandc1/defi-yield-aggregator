@@ -20,7 +20,8 @@ public record PortfolioDTO(
             BigDecimal apr,       // deposit APR as decimal, e.g., 0.045
             BigDecimal borrowAmount,
             BigDecimal borrowApr,
-            String riskStatus     // "OK" | "WARN" | "CRITICAL" (placeholder)
+            String riskStatus,    // "OK" | "WARN" | "CRITICAL" (placeholder)
+            String positionType   // "DEPOSIT" | "BORROW"
     ) {}
 }
 

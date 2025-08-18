@@ -41,15 +41,27 @@ class AaveV3ServiceTest {
                 .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
 
         List<PortfolioDTO.PositionDTO> positions = service.getPositions("0xabc");
-        assertThat(positions).hasSize(1);
-        PortfolioDTO.PositionDTO p = positions.get(0);
-        assertThat(p.asset()).isEqualTo("DAI");
-        assertThat(p.amount()).isEqualByComparingTo(new BigDecimal("100"));
-        assertThat(p.usdValue()).isEqualByComparingTo(new BigDecimal("100"));
-        assertThat(p.apr()).isEqualByComparingTo(new BigDecimal("0.05"));
-        assertThat(p.borrowAmount()).isEqualByComparingTo(new BigDecimal("10"));
-        assertThat(p.borrowApr()).isEqualByComparingTo(new BigDecimal("0.1"));
-        assertThat(p.riskStatus()).isEqualTo("OK");
+        assertThat(positions).hasSize(2);
+
+        PortfolioDTO.PositionDTO deposit = positions.get(0);
+        assertThat(deposit.asset()).isEqualTo("DAI");
+        assertThat(deposit.amount()).isEqualByComparingTo(new BigDecimal("100"));
+        assertThat(deposit.usdValue()).isEqualByComparingTo(new BigDecimal("100"));
+        assertThat(deposit.apr()).isEqualByComparingTo(new BigDecimal("0.05"));
+        assertThat(deposit.borrowAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(deposit.borrowApr()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(deposit.positionType()).isEqualTo("DEPOSIT");
+        assertThat(deposit.riskStatus()).isEqualTo("OK");
+
+        PortfolioDTO.PositionDTO borrow = positions.get(1);
+        assertThat(borrow.asset()).isEqualTo("DAI");
+        assertThat(borrow.amount()).isEqualByComparingTo(new BigDecimal("10"));
+        assertThat(borrow.usdValue()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(borrow.apr()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(borrow.borrowAmount()).isEqualByComparingTo(new BigDecimal("10"));
+        assertThat(borrow.borrowApr()).isEqualByComparingTo(new BigDecimal("0.1"));
+        assertThat(borrow.positionType()).isEqualTo("BORROW");
+        assertThat(borrow.riskStatus()).isEqualTo("OK");
     }
 }
 
