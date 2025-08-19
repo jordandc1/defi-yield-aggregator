@@ -14,6 +14,10 @@ Response:
   "lastUpdatedIso": "2025-08-14T08:00:00Z"
 }
 
+### Configuration
+
+The backend reads an `INFURA_API_KEY` environment variable (or `app.chains.ethereum.infuraApiKey` property) to build an Infura RPC URL when no Ethereum RPC endpoint is provided.
+
 ### GET /alerts/{address}
 Response:
 {
