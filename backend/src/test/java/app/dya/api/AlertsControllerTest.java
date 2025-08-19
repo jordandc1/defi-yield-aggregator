@@ -25,27 +25,28 @@ class AlertsControllerTest {
     private AaveV3HealthService aaveV3Service;
 
     @Test
-    void emitsWarningAlertWhenHealthFactorBelowWarning() throws Exception {
+    void emitsRiskAlertWhenHealthFactorBelowThreshold() throws Exception {
         when(aaveV3Service.getHealthFactor("0xabc")).thenReturn(new BigDecimal("1.2"));
 
         mockMvc.perform(get("/alerts/0xabc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.alerts", hasSize(1)))
-                .andExpect(jsonPath("$.alerts[0].type").value("HEALTH_FACTOR_LOW"));
+                .andExpect(jsonPath("$.alerts[0].type").value("LIQUIDATION_RISK"))
+                .andExpect(jsonPath("$.alerts[0].message").value("Health factor 1.20 below 1.3 on Aave position"));
     }
 
     @Test
-    void emitsCriticalAlertWhenHealthFactorBelowCritical() throws Exception {
+    void emitsRiskAlertWhenHealthFactorFarBelowThreshold() throws Exception {
         when(aaveV3Service.getHealthFactor("0xabc")).thenReturn(new BigDecimal("0.9"));
 
         mockMvc.perform(get("/alerts/0xabc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.alerts", hasSize(1)))
-                .andExpect(jsonPath("$.alerts[0].type").value("HEALTH_FACTOR_CRITICAL"));
+                .andExpect(jsonPath("$.alerts[0].type").value("LIQUIDATION_RISK"));
     }
 
     @Test
-    void noAlertWhenHealthFactorAboveWarning() throws Exception {
+    void noAlertWhenHealthFactorAboveThreshold() throws Exception {
         when(aaveV3Service.getHealthFactor("0xabc")).thenReturn(new BigDecimal("1.5"));
 
         mockMvc.perform(get("/alerts/0xabc"))
