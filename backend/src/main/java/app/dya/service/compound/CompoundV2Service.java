@@ -53,11 +53,11 @@ public class CompoundV2Service {
      * @return list of positions held on Compound v2
      */
     public List<PortfolioDTO.PositionDTO> getPositions(String address) {
+        List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
         if (address == null || address.isBlank()) {
-            return Collections.emptyList();
+            return positions;
         }
 
-        List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
         try {
             for (TokenMetadata token : tokens) {
                 CompoundLensClient.CTokenBalance balance = lensClient.getBalance(token.cTokenAddress, address);
@@ -95,7 +95,7 @@ public class CompoundV2Service {
                 }
             }
         } catch (Exception e) {
-            return Collections.emptyList();
+            return positions;
         }
 
         return positions;

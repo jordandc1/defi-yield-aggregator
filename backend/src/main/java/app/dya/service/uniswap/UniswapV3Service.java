@@ -39,23 +39,20 @@ public class UniswapV3Service {
      * Fetch Uniswap v3 LP positions for the given wallet address.
      */
     public List<PortfolioDTO.PositionDTO> getPositions(String address) {
+        List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
         if (address == null || address.isBlank()) {
-            return Collections.emptyList();
+            return positions;
         }
         String query = buildQuery(address);
         Map<String, Object> response = executeQuery(query);
-        List<Map<String, Object>> positions = extractPositions(response);
-        if (positions.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<PortfolioDTO.PositionDTO> result = new ArrayList<>();
-        for (Map<String, Object> p : positions) {
+        List<Map<String, Object>> rawPositions = extractPositions(response);
+        for (Map<String, Object> p : rawPositions) {
             PortfolioDTO.PositionDTO dto = mapPosition(p);
             if (dto != null) {
-                result.add(dto);
+                positions.add(dto);
             }
         }
-        return result;
+        return positions;
     }
 
     private String buildQuery(String address) {
