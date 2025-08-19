@@ -3,6 +3,7 @@ package app.dya.api;
 import app.dya.api.dto.PortfolioDTO;
 import app.dya.service.aave.AaveV3Service;
 import app.dya.service.compound.CompoundV2Service;
+import app.dya.service.uniswap.UniswapV3Service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -28,6 +29,9 @@ class PortfolioControllerTest {
     @MockBean
     private CompoundV2Service compoundV2Service;
 
+    @MockBean
+    private UniswapV3Service uniswapV3Service;
+
     @Test
     void aggregatesPositionsAndCalculatesTotals() throws Exception {
         List<PortfolioDTO.PositionDTO> aavePositions = List.of(
@@ -49,6 +53,7 @@ class PortfolioControllerTest {
 
         when(aaveV3Service.getPositions("0xabc")).thenReturn(aavePositions);
         when(compoundV2Service.getPositions("0xabc")).thenReturn(compoundPositions);
+        when(uniswapV3Service.getPositions("0xabc")).thenReturn(List.of());
 
         mockMvc.perform(get("/portfolio/0xabc"))
                 .andExpect(status().isOk())

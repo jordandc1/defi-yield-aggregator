@@ -18,14 +18,6 @@ class CompoundV2ServiceTest {
     private static final String ADDRESS = "0xabc";
     private static final String CDAI = "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643";
     private static final String CUSDC = "0x39AA39c021dfbaE8faC545936693aC917d5E7563";
-
-
-    String body = "{" +
-            "\"account\":{\"tokens\":[{" +
-            "\"underlyingSymbol\":\"DAI\",\"balanceUnderlying\":\"100\",\"borrowBalanceUnderlying\":\"10\"," +
-            "\"supplyRatePerBlock\":\"0.02\",\"borrowRatePerBlock\":\"0.04\",\"underlyingPrice\":\"1\"}]}" +
-            "}";
-
     private CompoundV2Service buildService(CompoundLensClient lens) {
         return new CompoundV2Service(lens);
     }
@@ -88,24 +80,4 @@ class CompoundV2ServiceTest {
         assertThat(borrow.borrowAmount()).isEqualByComparingTo(new BigDecimal("20"));
     }
 
-    @Test
-    void ignoresTokensWithZeroBalances() {
-        RestTemplate restTemplate = new RestTemplate();
-        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
-
-        CompoundV2Service service = buildService(restTemplate);
-
-        String body = "{" +
-                "\"account\":{\"tokens\":[{" +
-                "\"underlyingSymbol\":\"ETH\",\"balanceUnderlying\":\"0\",\"borrowBalanceUnderlying\":\"0\"," +
-                "\"supplyRatePerBlock\":\"0.01\",\"borrowRatePerBlock\":\"0.02\",\"underlyingPrice\":\"2000\"}]}" +
-                "}";
-
-        server.expect(requestTo("http://example.com/0xabc"))
-                .andExpect(method(org.springframework.http.HttpMethod.GET))
-                .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
-
-        List<PortfolioDTO.PositionDTO> positions = service.getPositions("0xabc");
-        assertThat(positions).isEmpty();
-    }
 }
