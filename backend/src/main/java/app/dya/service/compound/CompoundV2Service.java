@@ -57,9 +57,11 @@ public class CompoundV2Service {
         // CompoundLens returns more verbose field names. Fall back to the
         // simplified names used in earlier iterations for backward
         // compatibility of tests and potential API shims.
-        String symbol = token.containsKey("underlyingSymbol")
-                ? token.get("underlyingSymbol").toString()
-                : token.get("symbol").toString();
+        Object symbolObj = token.getOrDefault("underlyingSymbol", token.get("symbol"));
+        if (symbolObj == null) {
+            return Collections.emptyList();
+        }
+        String symbol = symbolObj.toString();
 
         BigDecimal usdPrice = new BigDecimal(
                 token.getOrDefault("underlyingPrice",
