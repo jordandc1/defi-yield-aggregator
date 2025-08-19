@@ -35,17 +35,17 @@ public class AaveV3Service {
      * Returns a list of Aave positions for the given wallet address.
      */
     public List<PortfolioDTO.PositionDTO> getPositions(String address) {
+        List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
         String query = buildQuery(address);
         Map<String, Object> response = executeQuery(query);
         Map<String, Object> user = getUser(response);
         if (user == null) {
-            return Collections.emptyList();
+            return positions;
         }
         BigDecimal healthFactor = parseWad((String) user.getOrDefault("healthFactor", "0"));
         String riskStatus = riskStatus(healthFactor);
 
         List<Map<String, Object>> reserves = (List<Map<String, Object>>) user.getOrDefault("reserves", Collections.emptyList());
-        List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
         for (Map<String, Object> r : reserves) {
             positions.addAll(mapReserve(r, riskStatus));
         }
