@@ -23,3 +23,4 @@ app:
       rpcUrl: ${ETHEREUM_RPC_URL:} # Alchemy/Infura HTTPS
       wsUrl:  ${ETHEREUM_WS_URL:}  # optional for later
       chainId: 1
+      infuraApiKey: ${INFURA_API_KEY:}
