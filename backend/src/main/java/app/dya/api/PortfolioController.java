@@ -3,6 +3,7 @@ package app.dya.api;
 import app.dya.api.dto.*;
 import app.dya.service.aave.AaveV3Service;
 import app.dya.service.compound.CompoundV2Service;
+import app.dya.service.uniswap.UniswapV3Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -18,10 +19,14 @@ public class PortfolioController {
 
     private final AaveV3Service aaveV3Service;
     private final CompoundV2Service compoundV2Service;
+    private final UniswapV3Service uniswapV3Service;
 
-    public PortfolioController(AaveV3Service aaveV3Service, CompoundV2Service compoundV2Service) {
+    public PortfolioController(AaveV3Service aaveV3Service,
+                               CompoundV2Service compoundV2Service,
+                               UniswapV3Service uniswapV3Service) {
         this.aaveV3Service = aaveV3Service;
         this.compoundV2Service = compoundV2Service;
+        this.uniswapV3Service = uniswapV3Service;
     }
 
     @GetMapping("/{address}")
@@ -29,6 +34,7 @@ public class PortfolioController {
         List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
         positions.addAll(aaveV3Service.getPositions(address));
         positions.addAll(compoundV2Service.getPositions(address));
+        positions.addAll(uniswapV3Service.getPositions(address));
 
         BigDecimal totalUsd = positions.stream()
                 .map(PortfolioDTO.PositionDTO::usdValue)
