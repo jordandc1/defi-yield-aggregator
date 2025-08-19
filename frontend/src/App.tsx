@@ -132,18 +132,22 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {portfolio.positions?.map((p, i) => (
-                  <tr key={i} style={{ borderTop: '1px solid #eee' }}>
-                    <Td>{p.protocol}</Td>
-                    <Td>{p.network}</Td>
-                    <Td>{p.asset}</Td>
-                    <Td>{p.positionType}</Td>
-                    <Td right>{num(p.positionType === 'BORROW' ? -p.amount : p.amount)}</Td>
-                    <Td right>{fmtUsd(p.positionType === 'BORROW' ? -p.usdValue : p.usdValue)}</Td>
-                    <Td right>{(p.apr * 100).toFixed(2)}%</Td>
-                    <Td><RiskTag level={p.riskStatus} /></Td>
-                  </tr>
-                ))}
+                {portfolio.positions?.map((p, i) => {
+                  const amount = p.positionType === 'BORROW' ? -p.amount : p.amount
+                  const usd = p.positionType === 'BORROW' ? -p.usdValue : p.usdValue
+                  return (
+                    <tr key={i} style={{ borderTop: '1px solid #eee' }}>
+                      <Td>{p.protocol}</Td>
+                      <Td>{p.network}</Td>
+                      <Td>{p.asset}</Td>
+                      <Td>{p.positionType}</Td>
+                      <Td right>{num(amount)}</Td>
+                      <Td right>{fmtUsd(usd)}</Td>
+                      <Td right>{(p.apr * 100).toFixed(2)}%</Td>
+                      <Td><RiskTag level={p.riskStatus} /></Td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </>

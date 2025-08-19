@@ -115,12 +115,15 @@ public class UniswapV3Service {
         String symbol1 = token1.getOrDefault("symbol", "").toString();
         String feeTier = pool.getOrDefault("feeTier", "").toString();
 
-        BigDecimal price0 = new BigDecimal(token0.getOrDefault("derivedUSD", "0").toString());
-        BigDecimal price1 = new BigDecimal(token1.getOrDefault("derivedUSD", "0").toString());
+        BigDecimal token0PriceUsd = new BigDecimal(token0.getOrDefault("derivedUSD", "0").toString());
+        BigDecimal token1PriceUsd = new BigDecimal(token1.getOrDefault("derivedUSD", "0").toString());
 
-        BigDecimal amount0 = reserve0.multiply(share);
-        BigDecimal amount1 = reserve1.multiply(share);
-        BigDecimal usdValue = amount0.multiply(price0).add(amount1.multiply(price1));
+        BigDecimal token0Amount = reserve0.multiply(share);
+        BigDecimal token1Amount = reserve1.multiply(share);
+
+        // usdValue = (token0_amount * token0_priceUSD) + (token1_amount * token1_priceUSD)
+        BigDecimal usdValue = token0Amount.multiply(token0PriceUsd)
+                .add(token1Amount.multiply(token1PriceUsd));
 
         BigDecimal tvlUsd = new BigDecimal(pool.getOrDefault("totalValueLockedUSD", "0").toString());
         BigDecimal feesUsd = new BigDecimal(pool.getOrDefault("feesUSD", "0").toString());
