@@ -56,6 +56,45 @@ public class CompoundV2Service {
         if (address == null || address.isBlank()) {
             return Collections.emptyList();
         }
+        return positions;
+    }
+
+    private List<PortfolioDTO.PositionDTO> mapToken(Map<String, Object> token) {
+        // CompoundLens returns more verbose field names. Fall back to the
+        // simplified names used in earlier iterations for backward
+        // compatibility of tests and potential API shims.
+        Object symbolObj = token.getOrDefault("underlyingSymbol", token.get("symbol"));
+        if (symbolObj == null) {
+            return Collections.emptyList();
+        }
+        String symbol = symbolObj.toString();
+
+        BigDecimal usdPrice = new BigDecimal(
+                token.getOrDefault("underlyingPrice",
+                        token.getOrDefault("usdPrice", "0")).toString()
+        );
+
+        BigDecimal supplyBalance = new BigDecimal(
+                token.getOrDefault("balanceUnderlying",
+                        token.getOrDefault("supplyBalanceUnderlying",
+                                token.getOrDefault("supplyBalance", "0"))).toString()
+        );
+
+        BigDecimal borrowBalance = new BigDecimal(
+                token.getOrDefault("borrowBalanceUnderlying",
+                        token.getOrDefault("borrowBalance", "0")).toString()
+        );
+
+        BigDecimal supplyRate = new BigDecimal(
+                token.getOrDefault("supplyRatePerBlock",
+                        token.getOrDefault("supplyRate", "0")).toString()
+        );
+
+        BigDecimal borrowRate = new BigDecimal(
+                token.getOrDefault("borrowRatePerBlock",
+                        token.getOrDefault("borrowRate", "0")).toString()
+        );
+
         List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
         try {
             for (TokenMetadata token : tokens) {
