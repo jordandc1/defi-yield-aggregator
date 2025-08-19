@@ -54,12 +54,38 @@ public class CompoundV2Service {
     }
 
     private List<PortfolioDTO.PositionDTO> mapToken(Map<String, Object> token) {
-        String symbol = token.get("symbol").toString();
-        BigDecimal usdPrice = new BigDecimal(token.getOrDefault("usdPrice", "0").toString());
-        BigDecimal supplyBalance = new BigDecimal(token.getOrDefault("supplyBalance", "0").toString());
-        BigDecimal borrowBalance = new BigDecimal(token.getOrDefault("borrowBalance", "0").toString());
-        BigDecimal supplyRate = new BigDecimal(token.getOrDefault("supplyRate", "0").toString());
-        BigDecimal borrowRate = new BigDecimal(token.getOrDefault("borrowRate", "0").toString());
+        // CompoundLens returns more verbose field names. Fall back to the
+        // simplified names used in earlier iterations for backward
+        // compatibility of tests and potential API shims.
+        String symbol = token.containsKey("underlyingSymbol")
+                ? token.get("underlyingSymbol").toString()
+                : token.get("symbol").toString();
+
+        BigDecimal usdPrice = new BigDecimal(
+                token.getOrDefault("underlyingPrice",
+                        token.getOrDefault("usdPrice", "0")).toString()
+        );
+
+        BigDecimal supplyBalance = new BigDecimal(
+                token.getOrDefault("balanceUnderlying",
+                        token.getOrDefault("supplyBalanceUnderlying",
+                                token.getOrDefault("supplyBalance", "0"))).toString()
+        );
+
+        BigDecimal borrowBalance = new BigDecimal(
+                token.getOrDefault("borrowBalanceUnderlying",
+                        token.getOrDefault("borrowBalance", "0")).toString()
+        );
+
+        BigDecimal supplyRate = new BigDecimal(
+                token.getOrDefault("supplyRatePerBlock",
+                        token.getOrDefault("supplyRate", "0")).toString()
+        );
+
+        BigDecimal borrowRate = new BigDecimal(
+                token.getOrDefault("borrowRatePerBlock",
+                        token.getOrDefault("borrowRate", "0")).toString()
+        );
 
         List<PortfolioDTO.PositionDTO> positions = new ArrayList<>();
 

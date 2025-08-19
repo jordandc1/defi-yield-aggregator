@@ -35,8 +35,8 @@ class CompoundV2ServiceTest {
 
         String body = "{" +
                 "\"account\":{\"tokens\":[{" +
-                "\"symbol\":\"DAI\",\"supplyBalance\":\"100\",\"borrowBalance\":\"10\"," +
-                "\"supplyRate\":\"0.02\",\"borrowRate\":\"0.04\",\"usdPrice\":\"1\"}]}" +
+                "\"underlyingSymbol\":\"DAI\",\"balanceUnderlying\":\"100\",\"borrowBalanceUnderlying\":\"10\"," +
+                "\"supplyRatePerBlock\":\"0.02\",\"borrowRatePerBlock\":\"0.04\",\"underlyingPrice\":\"1\"}]}" +
                 "}";
 
         server.expect(requestTo("http://example.com/0xabc"))
@@ -86,8 +86,8 @@ class CompoundV2ServiceTest {
 
         String body = "{" +
                 "\"account\":{\"tokens\":[{" +
-                "\"symbol\":\"USDC\",\"supplyBalance\":\"0\",\"borrowBalance\":\"20\"," +
-                "\"supplyRate\":\"0\",\"borrowRate\":\"0.03\",\"usdPrice\":\"1\"}]}" +
+                "\"underlyingSymbol\":\"USDC\",\"balanceUnderlying\":\"0\",\"borrowBalanceUnderlying\":\"20\"," +
+                "\"supplyRatePerBlock\":\"0\",\"borrowRatePerBlock\":\"0.03\",\"underlyingPrice\":\"1\"}]}" +
                 "}";
 
         server.expect(requestTo("http://example.com/0xabc"))
@@ -100,6 +100,27 @@ class CompoundV2ServiceTest {
         assertThat(borrow.positionType()).isEqualTo("BORROW");
         assertThat(borrow.asset()).isEqualTo("USDC");
         assertThat(borrow.borrowAmount()).isEqualByComparingTo(new BigDecimal("20"));
+    }
+
+    @Test
+    void ignoresTokensWithZeroBalances() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+
+        CompoundV2Service service = buildService(restTemplate);
+
+        String body = "{" +
+                "\"account\":{\"tokens\":[{" +
+                "\"underlyingSymbol\":\"ETH\",\"balanceUnderlying\":\"0\",\"borrowBalanceUnderlying\":\"0\"," +
+                "\"supplyRatePerBlock\":\"0.01\",\"borrowRatePerBlock\":\"0.02\",\"underlyingPrice\":\"2000\"}]}" +
+                "}";
+
+        server.expect(requestTo("http://example.com/0xabc"))
+                .andExpect(method(org.springframework.http.HttpMethod.GET))
+                .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
+
+        List<PortfolioDTO.PositionDTO> positions = service.getPositions("0xabc");
+        assertThat(positions).isEmpty();
     }
 }
 
