@@ -1,6 +1,10 @@
 package app.dya.api;
 
 import app.dya.service.AaveV3HealthService;
+import app.dya.service.ApyTrackingService;
+import app.dya.service.aave.AaveV3Service;
+import app.dya.service.compound.CompoundV2Service;
+import app.dya.service.uniswap.UniswapV3Service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,11 +26,22 @@ class AlertsControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private AaveV3HealthService aaveV3Service;
+    private AaveV3HealthService aaveV3HealthService;
+    @MockBean
+    private AaveV3Service aaveV3Service;
+    @MockBean
+    private CompoundV2Service compoundV2Service;
+    @MockBean
+    private UniswapV3Service uniswapV3Service;
+    @MockBean
+    private ApyTrackingService apyTrackingService;
 
     @Test
     void emitsRiskAlertWhenHealthFactorBelowThreshold() throws Exception {
-        when(aaveV3Service.getHealthFactor("0xabc")).thenReturn(new BigDecimal("1.2"));
+        when(aaveV3HealthService.getHealthFactor("0xabc")).thenReturn(new BigDecimal("1.2"));
+        when(aaveV3Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
+        when(compoundV2Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
+        when(uniswapV3Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
 
         mockMvc.perform(get("/alerts/0xabc"))
                 .andExpect(status().isOk())
@@ -37,7 +52,10 @@ class AlertsControllerTest {
 
     @Test
     void emitsRiskAlertWhenHealthFactorFarBelowThreshold() throws Exception {
-        when(aaveV3Service.getHealthFactor("0xabc")).thenReturn(new BigDecimal("0.9"));
+        when(aaveV3HealthService.getHealthFactor("0xabc")).thenReturn(new BigDecimal("0.9"));
+        when(aaveV3Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
+        when(compoundV2Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
+        when(uniswapV3Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
 
         mockMvc.perform(get("/alerts/0xabc"))
                 .andExpect(status().isOk())
@@ -47,7 +65,10 @@ class AlertsControllerTest {
 
     @Test
     void noAlertWhenHealthFactorAboveThreshold() throws Exception {
-        when(aaveV3Service.getHealthFactor("0xabc")).thenReturn(new BigDecimal("1.5"));
+        when(aaveV3HealthService.getHealthFactor("0xabc")).thenReturn(new BigDecimal("1.5"));
+        when(aaveV3Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
+        when(compoundV2Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
+        when(uniswapV3Service.getPositions("0xabc")).thenReturn(java.util.Collections.emptyList());
 
         mockMvc.perform(get("/alerts/0xabc"))
                 .andExpect(status().isOk())
