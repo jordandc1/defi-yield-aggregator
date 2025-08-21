@@ -7,6 +7,7 @@ public record PortfolioDTO(
         String address,
         BigDecimal totalUsd,
         BigDecimal netWorthUsd,
+        BigDecimal dailyYieldUsd,
         BigDecimal healthFactor,
         List<PositionDTO> positions,
         String lastUpdatedIso

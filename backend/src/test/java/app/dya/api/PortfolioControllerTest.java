@@ -37,17 +37,17 @@ class PortfolioControllerTest {
         List<PortfolioDTO.PositionDTO> aavePositions = List.of(
                 new PortfolioDTO.PositionDTO(
                         "Aave", "ethereum", "DAI",
-                        new BigDecimal("100"), new BigDecimal("100"), new BigDecimal("0.05"),
+                        new BigDecimal("100"), new BigDecimal("100"), new BigDecimal("0.365"),
                         BigDecimal.ZERO, BigDecimal.ZERO, "OK", "DEPOSIT"),
                 new PortfolioDTO.PositionDTO(
                         "Aave", "ethereum", "DAI",
                         new BigDecimal("20"), BigDecimal.ZERO, BigDecimal.ZERO,
-                        new BigDecimal("20"), new BigDecimal("0.03"), "OK", "BORROW")
+                        new BigDecimal("20"), new BigDecimal("0.1825"), "OK", "BORROW")
         );
         List<PortfolioDTO.PositionDTO> compoundPositions = List.of(
                 new PortfolioDTO.PositionDTO(
                         "Compound", "ethereum", "USDC",
-                        new BigDecimal("50"), new BigDecimal("50"), new BigDecimal("0.02"),
+                        new BigDecimal("50"), new BigDecimal("50"), new BigDecimal("0.365"),
                         BigDecimal.ZERO, BigDecimal.ZERO, "OK", "DEPOSIT")
         );
 
@@ -60,6 +60,7 @@ class PortfolioControllerTest {
                 .andExpect(jsonPath("$.address").value("0xabc"))
                 .andExpect(jsonPath("$.totalUsd").value(150))
                 .andExpect(jsonPath("$.netWorthUsd").value(130))
+                .andExpect(jsonPath("$.dailyYieldUsd").value(0.14))
                 .andExpect(jsonPath("$.healthFactor").value(7.5))
                 .andExpect(jsonPath("$.positions.length()").value(3))
                 .andExpect(jsonPath("$.positions[0].protocol").value("Aave"))

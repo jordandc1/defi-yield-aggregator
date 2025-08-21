@@ -49,10 +49,22 @@ public class PortfolioController {
                 ? totalUsd.divide(totalBorrowUsd, 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
+        BigDecimal dailyYieldUsd = BigDecimal.ZERO;
+        for (PortfolioDTO.PositionDTO p : positions) {
+            BigDecimal depositYield = p.usdValue()
+                    .multiply(p.apr())
+                    .divide(BigDecimal.valueOf(365), 18, RoundingMode.HALF_UP);
+            BigDecimal borrowCost = p.borrowAmount()
+                    .multiply(p.borrowApr())
+                    .divide(BigDecimal.valueOf(365), 18, RoundingMode.HALF_UP);
+            dailyYieldUsd = dailyYieldUsd.add(depositYield).subtract(borrowCost);
+        }
+
         return new PortfolioDTO(
                 address,
                 totalUsd,
                 netWorthUsd,
+                dailyYieldUsd,
                 healthFactor,
                 positions,
                 Instant.now().toString()
