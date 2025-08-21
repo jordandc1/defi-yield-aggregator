@@ -121,8 +121,12 @@ export default function App() {
           <EmptyTable />
         ) : (
           <>
+            <div style={{ marginBottom: 12 }}>
+              <span style={{ marginRight: 12 }}>Total USD: <b>{fmtUsd(portfolio.totalUsd)}</b></span>
+              <span>Daily Yield USD: <b>{fmtUsd(portfolio.dailyYieldUsd)}</b></span>
+            </div>
             <p>
-              Address: {portfolio.address} · Total USD: <b>{fmtUsd(portfolio.totalUsd)}</b> ·
+              Address: {portfolio.address} ·
               Health Factor: {portfolio.healthFactor != null ? portfolio.healthFactor.toFixed(2) : 'N/A'} · Updated: {portfolio.lastUpdatedIso}
             </p>
             <table width="100%" cellPadding={6} style={{ borderCollapse: 'collapse' }}>
