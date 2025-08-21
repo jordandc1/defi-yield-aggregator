@@ -17,6 +17,7 @@ export type PositionDTO = {
 export type PortfolioDTO = {
   address: string
   totalUsd: number
+  dailyYieldUsd: number
   netWorthUsd?: number
   healthFactor: number | null
   positions: PositionDTO[]
