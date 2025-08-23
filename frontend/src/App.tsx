@@ -179,8 +179,9 @@ export default function App() {
                 {portfolio.positions?.map((p, i) => {
                   const amount = p.positionType === 'BORROW' ? -p.amount : p.amount
                   const usd = p.positionType === 'BORROW' ? -p.usdValue : p.usdValue
+                  const risk = riskClasses(p.riskStatus)
                   return (
-                    <tr key={i} className="border-t">
+                    <tr key={i} className={`border-t ${risk.row}`}>
                       <Td>{p.protocol}</Td>
                       <Td>{p.network}</Td>
                       <Td>{p.asset}</Td>
@@ -231,6 +232,26 @@ function short(a?: string) { return a ? `${a.slice(0,6)}…${a.slice(-4)}` : '' 
 function num(n: number) { return Number(n).toLocaleString(undefined, { maximumFractionDigits: 6 }) }
 function fmtUsd(n: number) { return n.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }) }
 
+function riskClasses(level?: string) {
+  const lvl = level?.toUpperCase()
+  if (lvl === 'CRITICAL' || lvl === 'DANGER' || lvl === 'HIGH') {
+    return {
+      tag: 'bg-red-600 text-white',
+      row: 'bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200'
+    }
+  }
+  if (lvl === 'WARN' || lvl === 'WARNING' || lvl === 'MEDIUM') {
+    return {
+      tag: 'bg-amber-600 text-white',
+      row: 'bg-yellow-50 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200'
+    }
+  }
+  return {
+    tag: 'bg-green-600 text-white',
+    row: ''
+  }
+}
+
 function Th({ children, right }: { children: ReactNode; right?: boolean }) {
   return <th className={`${right ? 'text-right' : 'text-left'} text-sm font-semibold text-gray-700`}>{children}</th>
 }
@@ -238,11 +259,8 @@ function Td({ children, right }: { children: ReactNode; right?: boolean }) {
   return <td className={`${right ? 'text-right' : 'text-left'} text-sm`}>{children}</td>
 }
 function RiskTag({ level }: { level: string }) {
-  const lvl = level?.toUpperCase()
-  let color = 'bg-green-600'
-  if (lvl === 'CRITICAL' || lvl === 'DANGER' || lvl === 'HIGH') color = 'bg-red-600'
-  else if (lvl === 'WARN' || lvl === 'WARNING' || lvl === 'MEDIUM') color = 'bg-amber-600'
-  return <span className={`${color} rounded px-2 py-0.5 text-xs text-white`}>{level}</span>
+  const { tag } = riskClasses(level)
+  return <span className={`${tag} rounded px-2 py-0.5 text-xs`}>{level}</span>
 }
 function EmptyTable() {
   return (
