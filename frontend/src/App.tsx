@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, useCallback, type ReactNode } from 'react'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { addRecentAddress, getRecentAddresses } from './storage'
@@ -18,6 +18,7 @@ export default function App() {
   const [prices, setPrices] = useState<Record<string, number> | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
   useEffect(() => {
     setRecent(getRecentAddresses())
@@ -31,7 +32,7 @@ export default function App() {
   }, [isConnected, connectedAddr])
 
   useEffect(() => {
-  fetchPrices(['ETH','DAI','USDC']).then(setPrices).catch(console.error)
+    fetchPrices(['ETH','DAI','USDC']).then(setPrices).catch(console.error)
   }, [])
 
   const metamask = useMemo(
@@ -39,12 +40,17 @@ export default function App() {
     [connectors]
   )
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!addr) return
     setLoading(true); setError(null)
     try {
-      const [p, a] = await Promise.all([fetchPortfolio(addr), fetchAlerts(addr)])
-      setPortfolio(p); setAlerts(a)
+      const [p, a, pr] = await Promise.all([
+        fetchPortfolio(addr),
+        fetchAlerts(addr),
+        fetchPrices(['ETH','DAI','USDC'])
+      ])
+      setPortfolio(p); setAlerts(a); setPrices(pr)
+      setLastUpdated(new Date().toISOString())
       addRecentAddress(addr)
       setRecent(getRecentAddresses())
     } catch (e: unknown) {
@@ -56,7 +62,13 @@ export default function App() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [addr])
+
+  useEffect(() => {
+    if (!portfolio) return
+    const id = setInterval(() => { load() }, 5 * 60 * 1000)
+    return () => clearInterval(id)
+  }, [portfolio, load])
 
   function pickRecent(a: string) {
     setAddr(a)
@@ -116,7 +128,15 @@ export default function App() {
       )}
 
       <section style={{ marginTop: 24 }}>
-        <h2>Portfolio</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2>Portfolio</h2>
+          {portfolio && (
+            <div style={{ fontSize: 12 }}>
+              <button onClick={load} disabled={loading} style={{ marginRight: 8 }}>Refresh</button>
+              {lastUpdated && <span>Last updated: {new Date(lastUpdated).toLocaleTimeString()}</span>}
+            </div>
+          )}
+        </div>
         {!portfolio ? (
           <EmptyTable />
         ) : (
