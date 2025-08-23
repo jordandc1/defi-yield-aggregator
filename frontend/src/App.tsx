@@ -76,7 +76,7 @@ export default function App() {
   }
 
   return (
-    <div className="max-w-[980px] mx-auto my-8 p-4">
+    <div className="max-w-screen-lg mx-auto my-8 p-4 text-sm sm:text-base">
       <header className="mb-4 flex items-center justify-between">
         <h1>DeFi Yield Aggregator (MVP)</h1>
         <div>
@@ -100,7 +100,7 @@ export default function App() {
         </div>
       </header>
 
-      <section className="grid grid-cols-[1fr_auto] items-center gap-2">
+      <section className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
         <input
           placeholder="Enter EVM address (0x...) or connect wallet"
           value={addr}
@@ -109,12 +109,12 @@ export default function App() {
             // Reset existing data when user edits the address
             setPortfolio(null); setAlerts(null)
           }}
-          className="rounded border p-2 text-sm"
+          className="w-full rounded border p-2 sm:flex-1"
         />
         <button
           onClick={load}
           disabled={!addr || loading}
-          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+          className="w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50 sm:w-auto"
         >
           {loading ? 'Loading…' : 'Fetch'}
         </button>
@@ -169,32 +169,34 @@ export default function App() {
               Address: {portfolio.address} ·
               Health Factor: {portfolio.healthFactor != null ? portfolio.healthFactor.toFixed(2) : 'N/A'} · Updated: {portfolio.lastUpdatedIso}
             </p>
-            <table width="100%" cellPadding={6} className="w-full border-collapse">
-              <thead>
-                <tr>
-                  <Th>Protocol</Th><Th>Network</Th><Th>Asset</Th><Th>Type</Th><Th right>Amount</Th><Th right>USD</Th><Th right>APR</Th><Th>Risk</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {portfolio.positions?.map((p, i) => {
-                  const amount = p.positionType === 'BORROW' ? -p.amount : p.amount
-                  const usd = p.positionType === 'BORROW' ? -p.usdValue : p.usdValue
-                  const risk = riskClasses(p.riskStatus)
-                  return (
-                    <tr key={i} className={`border-t ${risk.row}`}>
-                      <Td>{p.protocol}</Td>
-                      <Td>{p.network}</Td>
-                      <Td>{p.asset}</Td>
-                      <Td>{p.positionType}</Td>
-                      <Td right>{num(amount)}</Td>
-                      <Td right>{fmtUsd(usd)}</Td>
-                      <Td right>{(p.apr * 100).toFixed(2)}%</Td>
-                      <Td><RiskTag level={p.riskStatus} /></Td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table width="100%" cellPadding={6} className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <Th>Protocol</Th><Th>Network</Th><Th>Asset</Th><Th>Type</Th><Th right>Amount</Th><Th right>USD</Th><Th right>APR</Th><Th>Risk</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {portfolio.positions?.map((p, i) => {
+                    const amount = p.positionType === 'BORROW' ? -p.amount : p.amount
+                    const usd = p.positionType === 'BORROW' ? -p.usdValue : p.usdValue
+                    const risk = riskClasses(p.riskStatus)
+                    return (
+                      <tr key={i} className={`border-t ${risk.row}`}>
+                        <Td>{p.protocol}</Td>
+                        <Td>{p.network}</Td>
+                        <Td>{p.asset}</Td>
+                        <Td>{p.positionType}</Td>
+                        <Td right>{num(amount)}</Td>
+                        <Td right>{fmtUsd(usd)}</Td>
+                        <Td right>{(p.apr * 100).toFixed(2)}%</Td>
+                        <Td><RiskTag level={p.riskStatus} /></Td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </>
         )}
       </section>
@@ -264,11 +266,13 @@ function RiskTag({ level }: { level: string }) {
 }
 function EmptyTable() {
   return (
-    <table width="100%" cellPadding={6} className="w-full border-collapse text-gray-500">
-      <thead>
-        <tr><th>Protocol</th><th>Network</th><th>Asset</th><th>Type</th><th>Amount</th><th>USD</th><th>APR</th><th>Risk</th></tr>
-      </thead>
-      <tbody><tr><td colSpan={8} className="p-5 text-center">No data yet. Enter an address or connect wallet.</td></tr></tbody>
-    </table>
+    <div className="overflow-x-auto">
+      <table width="100%" cellPadding={6} className="w-full border-collapse text-gray-500">
+        <thead>
+          <tr><th>Protocol</th><th>Network</th><th>Asset</th><th>Type</th><th>Amount</th><th>USD</th><th>APR</th><th>Risk</th></tr>
+        </thead>
+        <tbody><tr><td colSpan={8} className="p-5 text-center">No data yet. Enter an address or connect wallet.</td></tr></tbody>
+      </table>
+    </div>
   )
 }
