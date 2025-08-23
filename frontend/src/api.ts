@@ -29,18 +29,30 @@ export type AlertsResponse = {
 }
 
 export async function fetchPortfolio(address: string) {
-  const { data } = await axios.get<PortfolioDTO>(`${BASE}/portfolio/${address}`);
-  return data;
+  try {
+    const { data } = await axios.get<PortfolioDTO>(`${BASE}/portfolio/${address}`)
+    return data
+  } catch {
+    throw new Error('Failed to fetch portfolio')
+  }
 }
 
 export async function fetchAlerts(address: string) {
-  const { data } = await axios.get<AlertsResponse>(`${BASE}/alerts/${address}`);
-  return data;
+  try {
+    const { data } = await axios.get<AlertsResponse>(`${BASE}/alerts/${address}`)
+    return data
+  } catch {
+    throw new Error('Failed to fetch alerts')
+  }
 }
 
 export async function fetchPrices(symbols: string[]) {
   const qs = encodeURIComponent(symbols.join(','))
-  const { data } = await axios.get<Record<string, number>>(`${BASE}/prices?symbols=${qs}`)
-  return data
+  try {
+    const { data } = await axios.get<Record<string, number>>(`${BASE}/prices?symbols=${qs}`)
+    return data
+  } catch {
+    throw new Error('Failed to fetch prices')
+  }
 }
 

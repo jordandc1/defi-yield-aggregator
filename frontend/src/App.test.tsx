@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi } from 'vitest'
 import App from './App'
 import type { PortfolioDTO } from './api'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 vi.mock('wagmi', () => ({
   useAccount: () => ({ address: '0xabc', isConnected: true }),
@@ -30,7 +31,14 @@ vi.mock('./api', () => ({
 
 describe('App summary', () => {
   it('renders total and daily yield', async () => {
-    render(<App />)
+    const qc = new QueryClient()
+    render(
+      <QueryClientProvider client={qc}>
+        <App />
+      </QueryClientProvider>
+    )
+    // wait for address to autofill
+    await screen.findByDisplayValue('0xabc')
     const btn = await screen.findByText('Fetch')
     fireEvent.click(btn)
     await waitFor(() => {
