@@ -76,8 +76,8 @@ export default function App() {
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: '32px auto', padding: 16 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+    <div className="max-w-[980px] mx-auto my-8 p-4">
+      <header className="mb-4 flex items-center justify-between">
         <h1>DeFi Yield Aggregator (MVP)</h1>
         <div>
           {!isConnected ? (
@@ -85,16 +85,22 @@ export default function App() {
               onClick={() => connect({ connector: metamask })}
               disabled={isConnecting}
               title="Connect MetaMask / Injected Wallet"
+              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
             >
               {isConnecting ? 'Connecting…' : 'Connect Wallet'}
             </button>
           ) : (
-            <button onClick={() => disconnect()}>Disconnect {short(connectedAddr)}</button>
+            <button
+              onClick={() => disconnect()}
+              className="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+            >
+              Disconnect {short(connectedAddr)}
+            </button>
           )}
         </div>
       </header>
 
-      <section style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'center' }}>
+      <section className="grid grid-cols-[1fr_auto] items-center gap-2">
         <input
           placeholder="Enter EVM address (0x...) or connect wallet"
           value={addr}
@@ -103,18 +109,26 @@ export default function App() {
             // Reset existing data when user edits the address
             setPortfolio(null); setAlerts(null)
           }}
-          style={{ padding: 10, fontSize: 14 }}
+          className="rounded border p-2 text-sm"
         />
-        <button onClick={load} disabled={!addr || loading}>
+        <button
+          onClick={load}
+          disabled={!addr || loading}
+          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+        >
           {loading ? 'Loading…' : 'Fetch'}
         </button>
       </section>
 
       {recent.length > 0 && (
-        <section style={{ marginTop: 12 }}>
+        <section className="mt-3">
           <small>Recent:</small>{' '}
           {recent.map((a, i) => (
-            <button key={i} onClick={() => pickRecent(a)} style={{ marginRight: 6 }}>
+            <button
+              key={i}
+              onClick={() => pickRecent(a)}
+              className="mr-1.5 rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
+            >
               {short(a)}
             </button>
           ))}
@@ -122,17 +136,23 @@ export default function App() {
       )}
 
       {error && (
-        <div style={{ marginTop: 16, color: 'crimson' }}>
+        <div className="mt-4 text-red-700">
           <strong>Error:</strong> {error}
         </div>
       )}
 
-      <section style={{ marginTop: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <section className="mt-6">
+        <div className="flex items-center justify-between">
           <h2>Portfolio</h2>
           {portfolio && (
-            <div style={{ fontSize: 12 }}>
-              <button onClick={load} disabled={loading} style={{ marginRight: 8 }}>Refresh</button>
+            <div className="text-xs">
+              <button
+                onClick={load}
+                disabled={loading}
+                className="mr-2 rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600 disabled:opacity-50"
+              >
+                Refresh
+              </button>
               {lastUpdated && <span>Last updated: {new Date(lastUpdated).toLocaleTimeString()}</span>}
             </div>
           )}
@@ -141,15 +161,15 @@ export default function App() {
           <EmptyTable />
         ) : (
           <>
-            <div style={{ marginBottom: 12 }}>
-              <span style={{ marginRight: 12 }}>Total USD: <b>{fmtUsd(portfolio.totalUsd)}</b></span>
+            <div className="mb-3">
+              <span className="mr-3">Total USD: <b>{fmtUsd(portfolio.totalUsd)}</b></span>
               <span>Daily Yield USD: <b>{fmtUsd(portfolio.dailyYieldUsd)}</b></span>
             </div>
             <p>
               Address: {portfolio.address} ·
               Health Factor: {portfolio.healthFactor != null ? portfolio.healthFactor.toFixed(2) : 'N/A'} · Updated: {portfolio.lastUpdatedIso}
             </p>
-            <table width="100%" cellPadding={6} style={{ borderCollapse: 'collapse' }}>
+            <table width="100%" cellPadding={6} className="w-full border-collapse">
               <thead>
                 <tr>
                   <Th>Protocol</Th><Th>Network</Th><Th>Asset</Th><Th>Type</Th><Th right>Amount</Th><Th right>USD</Th><Th right>APR</Th><Th>Risk</Th>
@@ -160,7 +180,7 @@ export default function App() {
                   const amount = p.positionType === 'BORROW' ? -p.amount : p.amount
                   const usd = p.positionType === 'BORROW' ? -p.usdValue : p.usdValue
                   return (
-                    <tr key={i} style={{ borderTop: '1px solid #eee' }}>
+                    <tr key={i} className="border-t">
                       <Td>{p.protocol}</Td>
                       <Td>{p.network}</Td>
                       <Td>{p.asset}</Td>
@@ -179,20 +199,20 @@ export default function App() {
       </section>
 
       {prices && (
-        <section style={{ marginTop: 24 }}>
+        <section className="mt-6">
           <h2>Live Prices</h2>
-          <div style={{ fontSize: 14 }}>
-            <span style={{ marginRight: 12 }}>ETH ${prices.ETH?.toFixed(2)}</span>
-            <span style={{ marginRight: 12 }}>DAI ${prices.DAI?.toFixed(4)}</span>
+          <div className="text-sm">
+            <span className="mr-3">ETH ${prices.ETH?.toFixed(2)}</span>
+            <span className="mr-3">DAI ${prices.DAI?.toFixed(4)}</span>
             <span>USDC ${prices.USDC?.toFixed(4)}</span>
           </div>
         </section>
       )}
 
-      <section style={{ marginTop: 24 }}>
+      <section className="mt-6">
         <h2>Alerts</h2>
         {!alerts ? (
-          <p style={{ color: '#777' }}>No data yet.</p>
+          <p className="text-gray-500">No data yet.</p>
         ) : alerts.alerts?.length ? (
           <ul>
             {alerts.alerts.map((a, i) => (
@@ -200,7 +220,7 @@ export default function App() {
             ))}
           </ul>
         ) : (
-          <p style={{ color: '#777' }}>No alerts.</p>
+          <p className="text-gray-500">No alerts.</p>
         )}
       </section>
     </div>
@@ -212,25 +232,25 @@ function num(n: number) { return Number(n).toLocaleString(undefined, { maximumFr
 function fmtUsd(n: number) { return n.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }) }
 
 function Th({ children, right }: { children: ReactNode; right?: boolean }) {
-  return <th style={{ textAlign: right ? 'right' as const : 'left', fontWeight: 600, fontSize: 13, color: '#444' }}>{children}</th>
+  return <th className={`${right ? 'text-right' : 'text-left'} text-sm font-semibold text-gray-700`}>{children}</th>
 }
 function Td({ children, right }: { children: ReactNode; right?: boolean }) {
-  return <td style={{ textAlign: right ? 'right' as const : 'left', fontSize: 13 }}>{children}</td>
+  return <td className={`${right ? 'text-right' : 'text-left'} text-sm`}>{children}</td>
 }
 function RiskTag({ level }: { level: string }) {
   const lvl = level?.toUpperCase()
-  let color = '#16a34a'
-  if (lvl === 'CRITICAL' || lvl === 'DANGER' || lvl === 'HIGH') color = '#dc2626'
-  else if (lvl === 'WARN' || lvl === 'WARNING' || lvl === 'MEDIUM') color = '#d97706'
-  return <span style={{ background: color, color: 'white', padding: '2px 6px', borderRadius: 6, fontSize: 12 }}>{level}</span>
+  let color = 'bg-green-600'
+  if (lvl === 'CRITICAL' || lvl === 'DANGER' || lvl === 'HIGH') color = 'bg-red-600'
+  else if (lvl === 'WARN' || lvl === 'WARNING' || lvl === 'MEDIUM') color = 'bg-amber-600'
+  return <span className={`${color} rounded px-2 py-0.5 text-xs text-white`}>{level}</span>
 }
 function EmptyTable() {
   return (
-    <table width="100%" cellPadding={6} style={{ borderCollapse: 'collapse', color: '#777' }}>
+    <table width="100%" cellPadding={6} className="w-full border-collapse text-gray-500">
       <thead>
         <tr><th>Protocol</th><th>Network</th><th>Asset</th><th>Type</th><th>Amount</th><th>USD</th><th>APR</th><th>Risk</th></tr>
       </thead>
-      <tbody><tr><td colSpan={8} style={{ textAlign: 'center', padding: 20 }}>No data yet. Enter an address or connect wallet.</td></tr></tbody>
+      <tbody><tr><td colSpan={8} className="p-5 text-center">No data yet. Enter an address or connect wallet.</td></tr></tbody>
     </table>
   )
 }
