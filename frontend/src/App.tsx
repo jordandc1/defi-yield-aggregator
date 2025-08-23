@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState, useCallback, type ReactNode } from 'react
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { addRecentAddress, getRecentAddresses } from './storage'
-import { fetchPrices, fetchAlerts, fetchPortfolio, type PortfolioDTO } from './api'
+import { fetchPrices, fetchAlerts, fetchPortfolio } from './api'
+import { Spinner } from './components/Spinner'
+import { Alert } from './components/Alert'
+import { useQuery } from '@tanstack/react-query'
 
 export default function App() {
   // wallet state
@@ -13,12 +16,44 @@ export default function App() {
   // ui state
   const [addr, setAddr] = useState<string>('')
   const [recent, setRecent] = useState<string[]>([])
-  const [portfolio, setPortfolio] = useState<PortfolioDTO | null>(null)
-  const [alerts, setAlerts] = useState<Awaited<ReturnType<typeof fetchAlerts>> | null>(null)
-  const [prices, setPrices] = useState<Record<string, number> | null>(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+
+  const {
+    data: portfolio,
+    isFetching: fetchingPortfolio,
+    refetch: refetchPortfolio,
+    remove: removePortfolio,
+  } = useQuery({
+    queryKey: ['portfolio', addr],
+    queryFn: () => fetchPortfolio(addr),
+    enabled: false,
+    retry: false,
+  })
+
+  const {
+    data: alerts,
+    isFetching: fetchingAlerts,
+    refetch: refetchAlerts,
+    remove: removeAlerts,
+  } = useQuery({
+    queryKey: ['alerts', addr],
+    queryFn: () => fetchAlerts(addr),
+    enabled: false,
+    retry: false,
+  })
+
+  const {
+    data: prices,
+    isFetching: fetchingPrices,
+    refetch: refetchPrices,
+  } = useQuery({
+    queryKey: ['prices'],
+    queryFn: () => fetchPrices(['ETH', 'DAI', 'USDC']),
+    retry: false,
+  })
+
+  const loading = fetchingPortfolio || fetchingAlerts || fetchingPrices
 
   useEffect(() => {
     setRecent(getRecentAddresses())
@@ -31,10 +66,6 @@ export default function App() {
     }
   }, [isConnected, connectedAddr])
 
-  useEffect(() => {
-    fetchPrices(['ETH','DAI','USDC']).then(setPrices).catch(console.error)
-  }, [])
-
   const metamask = useMemo(
     () => connectors.find(c => c.id === 'injected') ?? injected(),
     [connectors]
@@ -42,37 +73,38 @@ export default function App() {
 
   const load = useCallback(async () => {
     if (!addr) return
-    setLoading(true); setError(null)
+    setError(null)
     try {
       const [p, a, pr] = await Promise.all([
-        fetchPortfolio(addr),
-        fetchAlerts(addr),
-        fetchPrices(['ETH','DAI','USDC'])
+        refetchPortfolio(),
+        refetchAlerts(),
+        refetchPrices(),
       ])
-      setPortfolio(p); setAlerts(a); setPrices(pr)
+      if (p.error) throw p.error
+      if (a.error) throw a.error
+      if (pr.error) throw pr.error
       setLastUpdated(new Date().toISOString())
       addRecentAddress(addr)
       setRecent(getRecentAddresses())
     } catch (e: unknown) {
-      if(e instanceof Error) {
-        setError(e?.message ?? 'Failed to load data')
-      }
-      // Clear stale data on error to avoid showing old results
-      setPortfolio(null); setAlerts(null)
-    } finally {
-      setLoading(false)
+      setError(e instanceof Error ? e.message : 'Failed to load data')
+      removePortfolio()
+      removeAlerts()
     }
-  }, [addr])
+  }, [addr, refetchPortfolio, refetchAlerts, refetchPrices, removePortfolio, removeAlerts])
 
   useEffect(() => {
     if (!portfolio) return
-    const id = setInterval(() => { load() }, 5 * 60 * 1000)
+    const id = setInterval(() => {
+      load()
+    }, 5 * 60 * 1000)
     return () => clearInterval(id)
   }, [portfolio, load])
 
   function pickRecent(a: string) {
     setAddr(a)
-    setPortfolio(null); setAlerts(null)
+    removePortfolio()
+    removeAlerts()
   }
 
   return (
@@ -84,10 +116,12 @@ export default function App() {
             <button
               onClick={() => connect({ connector: metamask })}
               disabled={isConnecting}
+              aria-busy={isConnecting}
               title="Connect MetaMask / Injected Wallet"
-              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
+              className="flex items-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
             >
-              {isConnecting ? 'Connecting…' : 'Connect Wallet'}
+              {isConnecting && <Spinner className="mr-2" />}
+              Connect Wallet
             </button>
           ) : (
             <button
@@ -107,16 +141,18 @@ export default function App() {
           onChange={(e) => {
             setAddr(e.target.value.trim())
             // Reset existing data when user edits the address
-            setPortfolio(null); setAlerts(null)
+            removePortfolio(); removeAlerts()
           }}
           className="w-full rounded border p-2 sm:flex-1"
         />
         <button
           onClick={load}
           disabled={!addr || loading}
-          className="w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50 sm:w-auto"
+          aria-busy={loading}
+          className="flex w-full items-center justify-center rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50 sm:w-auto"
         >
-          {loading ? 'Loading…' : 'Fetch'}
+          {loading && <Spinner className="mr-2" />}
+          Fetch
         </button>
       </section>
 
@@ -136,12 +172,10 @@ export default function App() {
       )}
 
       {error && (
-        <div className="mt-4 text-red-700">
-          <strong>Error:</strong> {error}
-        </div>
+        <Alert message={error} onClose={() => setError(null)} onRetry={load} busy={loading} />
       )}
 
-      <section className="mt-6">
+      <section className="mt-6" aria-busy={fetchingPortfolio}>
         <div className="flex items-center justify-between">
           <h2>Portfolio</h2>
           {portfolio && (
@@ -149,8 +183,10 @@ export default function App() {
               <button
                 onClick={load}
                 disabled={loading}
-                className="mr-2 rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600 disabled:opacity-50"
+                aria-busy={loading}
+                className="mr-2 flex items-center rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600 disabled:opacity-50"
               >
+                {loading && <Spinner className="mr-1" />}
                 Refresh
               </button>
               {lastUpdated && <span>Last updated: {new Date(lastUpdated).toLocaleTimeString()}</span>}
@@ -158,7 +194,13 @@ export default function App() {
           )}
         </div>
         {!portfolio ? (
-          <EmptyTable />
+          fetchingPortfolio ? (
+            <div className="flex justify-center p-4" role="status">
+              <Spinner />
+            </div>
+          ) : (
+            <EmptyTable />
+          )
         ) : (
           <>
             <div className="mb-3">
@@ -201,21 +243,31 @@ export default function App() {
         )}
       </section>
 
-      {prices && (
-        <section className="mt-6">
-          <h2>Live Prices</h2>
+      <section className="mt-6" aria-busy={fetchingPrices}>
+        <h2>Live Prices</h2>
+        {!prices ? (
+          <div className="flex justify-center p-4" role="status">
+            <Spinner />
+          </div>
+        ) : (
           <div className="text-sm">
             <span className="mr-3">ETH ${prices.ETH?.toFixed(2)}</span>
             <span className="mr-3">DAI ${prices.DAI?.toFixed(4)}</span>
             <span>USDC ${prices.USDC?.toFixed(4)}</span>
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
-      <section className="mt-6">
+      <section className="mt-6" aria-busy={fetchingAlerts}>
         <h2>Alerts</h2>
         {!alerts ? (
-          <p className="text-gray-500">No data yet.</p>
+          fetchingAlerts ? (
+            <div className="flex justify-center p-4" role="status">
+              <Spinner />
+            </div>
+          ) : (
+            <p className="text-gray-500">No data yet.</p>
+          )
         ) : alerts.alerts?.length ? (
           <ul>
             {alerts.alerts.map((a, i) => (
