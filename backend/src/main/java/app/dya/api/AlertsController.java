@@ -3,14 +3,19 @@ package app.dya.api;
 import app.dya.api.dto.AlertItem;
 import app.dya.api.dto.AlertsResponse;
 import app.dya.api.dto.PortfolioDTO;
+import app.dya.api.dto.SubscribeRequest;
 import app.dya.service.AaveV3HealthService;
 import app.dya.service.ApyTrackingService;
+import app.dya.service.AlertSubscriptionService;
+import app.dya.service.EmailAlertService;
 import app.dya.service.aave.AaveV3Service;
 import app.dya.service.compound.CompoundV2Service;
 import app.dya.service.uniswap.UniswapV3Service;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,17 +36,23 @@ public class AlertsController {
     private final CompoundV2Service compoundV2Service;
     private final UniswapV3Service uniswapV3Service;
     private final ApyTrackingService apyTrackingService;
+    private final AlertSubscriptionService subscriptionService;
+    private final EmailAlertService emailAlertService;
 
     public AlertsController(AaveV3HealthService aaveV3HealthService,
                             AaveV3Service aaveV3Service,
                             CompoundV2Service compoundV2Service,
                             UniswapV3Service uniswapV3Service,
-                            ApyTrackingService apyTrackingService) {
+                            ApyTrackingService apyTrackingService,
+                            AlertSubscriptionService subscriptionService,
+                            EmailAlertService emailAlertService) {
         this.aaveV3HealthService = aaveV3HealthService;
         this.aaveV3Service = aaveV3Service;
         this.compoundV2Service = compoundV2Service;
         this.uniswapV3Service = uniswapV3Service;
         this.apyTrackingService = apyTrackingService;
+        this.subscriptionService = subscriptionService;
+        this.emailAlertService = emailAlertService;
     }
 
     @GetMapping("/{address}")
@@ -69,6 +80,16 @@ public class AlertsController {
             }
         }
 
-        return new AlertsResponse(address, alerts);
+        AlertsResponse response = new AlertsResponse(address, alerts);
+        if (!alerts.isEmpty()) {
+            subscriptionService.getEmail(address)
+                    .ifPresent(email -> emailAlertService.send(email, alerts));
+        }
+        return response;
+    }
+
+    @PostMapping("/subscribe")
+    public void subscribe(@RequestBody SubscribeRequest request) {
+        subscriptionService.subscribeEmail(request.address(), request.email());
     }
 }

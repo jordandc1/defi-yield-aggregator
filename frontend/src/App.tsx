@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback, type ReactNode } from 'react
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { addRecentAddress, getRecentAddresses } from './storage'
-import { fetchPrices, fetchAlerts, fetchPortfolio } from './api'
+import { fetchPrices, fetchAlerts, fetchPortfolio, subscribeEmail } from './api'
 import { Spinner } from './components/Spinner'
 import { Alert } from './components/Alert'
 import { useQuery } from '@tanstack/react-query'
@@ -15,6 +15,7 @@ export default function App() {
 
   // ui state
   const [addr, setAddr] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
   const [recent, setRecent] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
@@ -58,6 +59,12 @@ export default function App() {
   useEffect(() => {
     setRecent(getRecentAddresses())
   }, [])
+
+  useEffect(() => {
+    if (addr && email) {
+      subscribeEmail(addr, email)
+    }
+  }, [addr, email])
 
   // autofill when wallet connects
   useEffect(() => {
@@ -143,6 +150,12 @@ export default function App() {
             // Reset existing data when user edits the address
             removePortfolio(); removeAlerts()
           }}
+          className="w-full rounded border p-2 sm:flex-1"
+        />
+        <input
+          placeholder="Email for alerts (optional)"
+          value={email}
+          onChange={(e) => setEmail(e.target.value.trim())}
           className="w-full rounded border p-2 sm:flex-1"
         />
         <button
