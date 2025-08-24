@@ -2,6 +2,7 @@ package app.dya.price;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -10,11 +11,12 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.time.Duration;
 import java.util.*;
 
 @Component
 public class CoinGeckoClient {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CoinGeckoClient.class);
 
     private static final ParameterizedTypeReference<Map<String, Map<String, Double>>> PRICE_TYPE =
             new ParameterizedTypeReference<>() {}; // NOTE: keep the full generic type here
@@ -83,19 +85,27 @@ public class CoinGeckoClient {
             keyValFinal  = null;
         }
 
-        return rest.get()
-                .uri(u -> {
-                    var b = u.path("/simple/price")
-                            .queryParam("ids", idsCsv)
-                            .queryParam("vs_currencies", "usd");
-                    if (keyNameFinal != null) {
-                        b = b.queryParam(keyNameFinal, keyValFinal);
-                    }
-                    return b.build();
-                })
-                .accept(org.springframework.http.MediaType.APPLICATION_JSON)
-                .retrieve()
-                .body(PRICE_TYPE);
+        try {
+            return rest.get()
+                    .uri(u -> {
+                        var b = u.path("/simple/price")
+                                .queryParam("ids", idsCsv)
+                                .queryParam("vs_currencies", "usd");
+                        if (keyNameFinal != null) {
+                            b = b.queryParam(keyNameFinal, keyValFinal);
+                        }
+                        return b.build();
+                    })
+                    .accept(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(PRICE_TYPE);
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode().value() == HttpStatus.TOO_MANY_REQUESTS.value()) {
+                log.warn("CoinGecko rate limit reached: {}", e.getMessage());
+                return Map.of();
+            }
+            throw new CoinGeckoClientException(e.getStatusCode().value(), "Error fetching prices", e);
+        }
     }
 
     // add this method
