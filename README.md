@@ -26,3 +26,12 @@ Response:
     {"type":"HEALTH_FACTOR_LOW","message":"...","protocol":"Aave","createdIso":"2025-08-14T08:00:00Z"}
   ]
 }
+
+### POST /alerts/subscribe
+Body:
+```
+{ "address": "0x...", "email": "user@example.com" }
+```
+
+The backend will send email notifications using SendGrid when alerts are generated.
+Set the `SENDGRID_API_KEY` environment variable and optionally `ALERT_FROM_EMAIL` for the sender address.

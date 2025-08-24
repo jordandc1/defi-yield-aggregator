@@ -2,6 +2,8 @@ package app.dya.api;
 
 import app.dya.service.AaveV3HealthService;
 import app.dya.service.ApyTrackingService;
+import app.dya.service.AlertSubscriptionService;
+import app.dya.service.EmailAlertService;
 import app.dya.service.aave.AaveV3Service;
 import app.dya.service.compound.CompoundV2Service;
 import app.dya.service.uniswap.UniswapV3Service;
@@ -35,6 +37,10 @@ class AlertsControllerTest {
     private UniswapV3Service uniswapV3Service;
     @MockBean
     private ApyTrackingService apyTrackingService;
+    @MockBean
+    private AlertSubscriptionService subscriptionService;
+    @MockBean
+    private EmailAlertService emailAlertService;
 
     @Test
     void emitsRiskAlertWhenHealthFactorBelowThreshold() throws Exception {

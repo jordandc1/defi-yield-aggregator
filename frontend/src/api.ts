@@ -56,3 +56,11 @@ export async function fetchPrices(symbols: string[]) {
   }
 }
 
+export async function subscribeEmail(address: string, email: string) {
+  try {
+    await axios.post(`${BASE}/alerts/subscribe`, { address, email })
+  } catch {
+    // ignore errors in MVP
+  }
+}
+
