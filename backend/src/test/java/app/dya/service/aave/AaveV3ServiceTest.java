@@ -63,5 +63,27 @@ class AaveV3ServiceTest {
         assertThat(borrow.positionType()).isEqualTo("BORROW");
         assertThat(borrow.riskStatus()).isEqualTo("OK");
     }
+
+    @Test
+    void returnsEmptyListWhenUserIsNull() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).ignoreExpectOrder(true).build();
+
+        AaveV3Service service = new AaveV3Service(new RestTemplateBuilder() {
+            @Override
+            public RestTemplate build() {
+                return restTemplate;
+            }
+        }, "http://example.com");
+
+        String body = "{\"data\":{\"user\":null}}";
+
+        server.expect(requestTo("http://example.com"))
+                .andExpect(method(org.springframework.http.HttpMethod.POST))
+                .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
+
+        List<PortfolioDTO.PositionDTO> positions = service.getPositions("0xabc");
+        assertThat(positions).isEmpty();
+    }
 }
 
