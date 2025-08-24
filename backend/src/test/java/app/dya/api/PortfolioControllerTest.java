@@ -33,6 +33,22 @@ class PortfolioControllerTest {
     private UniswapV3Service uniswapV3Service;
 
     @Test
+    void returnsEmptyPortfolioForUnknownWallet() throws Exception {
+        when(aaveV3Service.getPositions("0xempty")).thenReturn(List.of());
+        when(compoundV2Service.getPositions("0xempty")).thenReturn(List.of());
+        when(uniswapV3Service.getPositions("0xempty")).thenReturn(List.of());
+
+        mockMvc.perform(get("/portfolio/0xempty"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.address").value("0xempty"))
+                .andExpect(jsonPath("$.totalUsd").value(0))
+                .andExpect(jsonPath("$.netWorthUsd").value(0))
+                .andExpect(jsonPath("$.dailyYieldUsd").value(0))
+                .andExpect(jsonPath("$.healthFactor").value(0))
+                .andExpect(jsonPath("$.positions.length()").value(0));
+    }
+
+    @Test
     void aggregatesPositionsAndCalculatesTotals() throws Exception {
         List<PortfolioDTO.PositionDTO> aavePositions = List.of(
                 new PortfolioDTO.PositionDTO(
@@ -69,6 +85,54 @@ class PortfolioControllerTest {
                 .andExpect(jsonPath("$.positions[1].positionType").value("BORROW"))
                 .andExpect(jsonPath("$.positions[2].protocol").value("Compound"))
                 .andExpect(jsonPath("$.positions[2].asset").value("USDC"));
+    }
+
+    @Test
+    void aggregatesComplexWalletAcrossProtocols() throws Exception {
+        List<PortfolioDTO.PositionDTO> aavePositions = List.of(
+                new PortfolioDTO.PositionDTO(
+                        "Aave", "ethereum", "DAI",
+                        new BigDecimal("100"), new BigDecimal("100"), new BigDecimal("0.365"),
+                        BigDecimal.ZERO, BigDecimal.ZERO, "OK", "DEPOSIT"),
+                new PortfolioDTO.PositionDTO(
+                        "Aave", "ethereum", "DAI",
+                        new BigDecimal("20"), BigDecimal.ZERO, BigDecimal.ZERO,
+                        new BigDecimal("20"), new BigDecimal("0.365"), "OK", "BORROW")
+        );
+        List<PortfolioDTO.PositionDTO> compoundPositions = List.of(
+                new PortfolioDTO.PositionDTO(
+                        "Compound", "ethereum", "USDC",
+                        new BigDecimal("50"), new BigDecimal("50"), new BigDecimal("0.365"),
+                        BigDecimal.ZERO, BigDecimal.ZERO, "OK", "DEPOSIT"),
+                new PortfolioDTO.PositionDTO(
+                        "Compound", "ethereum", "ETH",
+                        new BigDecimal("10"), BigDecimal.ZERO, BigDecimal.ZERO,
+                        new BigDecimal("10"), new BigDecimal("0.365"), "OK", "BORROW")
+        );
+        List<PortfolioDTO.PositionDTO> uniswapPositions = List.of(
+                new PortfolioDTO.PositionDTO(
+                        "UniswapV3", "ethereum", "LP-ETH/USDC",
+                        new BigDecimal("30"), new BigDecimal("150"), new BigDecimal("0.365"),
+                        BigDecimal.ZERO, BigDecimal.ZERO, "OK", "DEPOSIT")
+        );
+
+        when(aaveV3Service.getPositions("0xcomplex")).thenReturn(aavePositions);
+        when(compoundV2Service.getPositions("0xcomplex")).thenReturn(compoundPositions);
+        when(uniswapV3Service.getPositions("0xcomplex")).thenReturn(uniswapPositions);
+
+        mockMvc.perform(get("/portfolio/0xcomplex"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.address").value("0xcomplex"))
+                .andExpect(jsonPath("$.totalUsd").value(300))
+                .andExpect(jsonPath("$.netWorthUsd").value(270))
+                .andExpect(jsonPath("$.dailyYieldUsd").value(0.27))
+                .andExpect(jsonPath("$.healthFactor").value(10))
+                .andExpect(jsonPath("$.positions.length()").value(5))
+                .andExpect(jsonPath("$.positions[0].protocol").value("Aave"))
+                .andExpect(jsonPath("$.positions[1].positionType").value("BORROW"))
+                .andExpect(jsonPath("$.positions[2].protocol").value("Compound"))
+                .andExpect(jsonPath("$.positions[3].positionType").value("BORROW"))
+                .andExpect(jsonPath("$.positions[4].protocol").value("UniswapV3"));
     }
 }
 
