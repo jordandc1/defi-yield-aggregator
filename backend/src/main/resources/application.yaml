@@ -12,7 +12,7 @@ app:
   prices:
     baseUrl: ${COINGECKO_BASE_URL:https://api.coingecko.com/api/v3}
     cacheTtlMinutes: ${PRICE_CACHE_TTL_MINUTES:10}
-    demoApiKey: ${COINGECKO_DEMO_API_KEY:CG-kQ575HU7YYQynEFkSyiaRnyA}
+    demoApiKey: ${COINGECKO_DEMO_API_KEY:}
     refreshMinutes: ${PRICE_REFRESH_MINUTES:0}
   http:
     connectTimeoutMillis: 3000
