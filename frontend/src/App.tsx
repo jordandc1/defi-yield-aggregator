@@ -5,7 +5,7 @@ import { addRecentAddress, getRecentAddresses } from './storage'
 import { fetchPrices, fetchAlerts, fetchPortfolio, subscribeEmail } from './api'
 import { Spinner } from './components/Spinner'
 import { Alert } from './components/Alert'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 export default function App() {
   // wallet state
@@ -20,11 +20,12 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
+  const queryClient = useQueryClient()
+
   const {
     data: portfolio,
     isFetching: fetchingPortfolio,
     refetch: refetchPortfolio,
-    remove: removePortfolio,
   } = useQuery({
     queryKey: ['portfolio', addr],
     queryFn: () => fetchPortfolio(addr),
@@ -36,7 +37,6 @@ export default function App() {
     data: alerts,
     isFetching: fetchingAlerts,
     refetch: refetchAlerts,
-    remove: removeAlerts,
   } = useQuery({
     queryKey: ['alerts', addr],
     queryFn: () => fetchAlerts(addr),
@@ -55,6 +55,14 @@ export default function App() {
   })
 
   const loading = fetchingPortfolio || fetchingAlerts || fetchingPrices
+
+  const clearPortfolio = useCallback(() => {
+    queryClient.removeQueries({ queryKey: ['portfolio', addr], exact: true })
+  }, [queryClient, addr])
+
+  const clearAlerts = useCallback(() => {
+    queryClient.removeQueries({ queryKey: ['alerts', addr], exact: true })
+  }, [queryClient, addr])
 
   useEffect(() => {
     setRecent(getRecentAddresses())
@@ -95,10 +103,10 @@ export default function App() {
       setRecent(getRecentAddresses())
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load data')
-      removePortfolio()
-      removeAlerts()
+      clearPortfolio()
+      clearAlerts()
     }
-  }, [addr, refetchPortfolio, refetchAlerts, refetchPrices, removePortfolio, removeAlerts])
+  }, [addr, refetchPortfolio, refetchAlerts, refetchPrices, clearPortfolio, clearAlerts])
 
   useEffect(() => {
     if (!portfolio) return
@@ -110,8 +118,8 @@ export default function App() {
 
   function pickRecent(a: string) {
     setAddr(a)
-    removePortfolio()
-    removeAlerts()
+    clearPortfolio()
+    clearAlerts()
   }
 
   return (
@@ -148,7 +156,7 @@ export default function App() {
           onChange={(e) => {
             setAddr(e.target.value.trim())
             // Reset existing data when user edits the address
-            removePortfolio(); removeAlerts()
+            clearPortfolio(); clearAlerts()
           }}
           className="w-full rounded border p-2 sm:flex-1"
         />
