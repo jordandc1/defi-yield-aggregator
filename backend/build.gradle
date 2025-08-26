@@ -55,4 +55,4 @@ tasks.named("bootRun") {
 
 // Ensure Spring Boot fat jar is produced and avoid running the plain jar
 bootJar { enabled = true }
-jar { enabled = true } // keep if you need the plain jar; otherwise you can disable it with 'enabled = false'
+jar { enabled = false } // keep if you need the plain jar; otherwise you can disable it with 'enabled = false'
