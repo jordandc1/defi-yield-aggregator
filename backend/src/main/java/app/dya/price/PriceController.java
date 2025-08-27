@@ -7,7 +7,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/prices")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.OPTIONS})
 public class PriceController {
 
     private final PriceService svc;
