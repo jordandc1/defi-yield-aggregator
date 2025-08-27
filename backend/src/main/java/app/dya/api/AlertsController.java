@@ -26,7 +26,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/alerts")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class AlertsController {
 
     private static final BigDecimal RISK_THRESHOLD = new BigDecimal("1.3");

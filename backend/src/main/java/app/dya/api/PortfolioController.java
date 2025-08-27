@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/portfolio")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class PortfolioController {
 
     private final AaveV3Service aaveV3Service;
